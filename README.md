@@ -111,6 +111,16 @@ nanaban generate "a banana" --json
 }
 ```
 
+## Claude Code Skill
+
+nanaban includes a [skill](skill/SKILL.md) for Claude Code. Install it with [equip](https://github.com/bradleydwyer/equip):
+
+```bash
+equip install bradleydwyer/nanaban
+```
+
+This lets Claude Code generate and edit images directly when you ask it to create visual assets.
+
 ## Terminal image display
 
 In Ghostty, Kitty, or WezTerm, generated images display inline in the terminal. Other terminals fall back to opening in the system viewer.
