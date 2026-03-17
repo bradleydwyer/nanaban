@@ -1,6 +1,6 @@
 # nanaban
 
-CLI for Gemini image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Gemini 2.5 Flash. Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
+CLI for AI image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Imagen 4 (Fast/Standard/Ultra). Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
 
 ## Install
 
@@ -41,21 +41,25 @@ nanaban edit photo.png "make it look like a watercolor painting"
 nanaban edit logo.png "change the background to dark blue" -m pro
 ```
 
+Note: editing is only supported with Nano Banana models (flash, pro). Imagen 4 is generation-only.
+
 ### Models
 
 ```
 $ nanaban models
-Name         API Identifier                             Cost  Description
-------------------------------------------------------------------------------------------
-flash        gemini-3.1-flash-image-preview           ~$0.04  Fast, cheap — Nano Banana 2 (default)
-pro          gemini-3-pro-image-preview               ~$0.13  High quality — Nano Banana Pro
-2.5-flash    gemini-2.5-flash-image                   ~$0.04  Speed optimized — Gemini 2.5
+Name           API Identifier                             Cost  Description
+-----------------------------------------------------------------------------------------------
+flash          gemini-3.1-flash-image-preview           ~$0.04  Fast, cheap — Nano Banana 2 (default)
+pro            gemini-3-pro-image-preview               ~$0.13  High quality — Nano Banana Pro
+imagen-fast    imagen-4.0-fast-generate-001             ~$0.02  Fastest generation — Imagen 4 Fast
+imagen         imagen-4.0-generate-001                  ~$0.04  Balanced quality/speed — Imagen 4
+imagen-ultra   imagen-4.0-ultra-generate-001            ~$0.06  Highest quality — Imagen 4 Ultra
 ```
 
 ### Flags
 
 ```
--m, --model <MODEL>    Model: flash (default), pro, 2.5-flash
+-m, --model <MODEL>    Model: flash (default), pro, imagen-fast, imagen, imagen-ultra
 -o, --output <PATH>    Output file path (default: auto-generated)
 -a, --aspect <RATIO>   Aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, etc.
 -s, --size <SIZE>      Resolution: 512, 1K (default), 2K, 4K

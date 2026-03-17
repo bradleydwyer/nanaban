@@ -40,15 +40,21 @@ nanaban edit /path/to/source.png "describe the changes you want" --json 2>/dev/n
 
 The JSON response is the same format. The edited image is saved to a new file (the original is not modified).
 
+## Editing Limitation
+
+Editing (`nanaban edit`) only works with Nano Banana models (flash, pro). Imagen 4 models are generation-only.
+
 ## Choosing a Model
 
 | Flag | Model | Cost | When to use |
 |------|-------|------|-------------|
-| `-m flash` | Nano Banana 2 | ~$0.04 | Default — good for most tasks |
-| `-m pro` | Nano Banana Pro | ~$0.13 | When the user wants high quality, fine detail, or professional output |
-| `-m 2.5-flash` | Gemini 2.5 Flash | ~$0.04 | Speed-optimized alternative |
+| `-m flash` | Nano Banana 2 | ~$0.04 | Default — good for most tasks, supports editing |
+| `-m pro` | Nano Banana Pro | ~$0.13 | High quality, fine detail, professional output, supports editing |
+| `-m imagen-fast` | Imagen 4 Fast | ~$0.02 | Cheapest generation, no editing |
+| `-m imagen` | Imagen 4 | ~$0.04 | Balanced quality/speed, no editing |
+| `-m imagen-ultra` | Imagen 4 Ultra | ~$0.06 | Highest quality generation, no editing |
 
-Use `flash` by default. Switch to `pro` when the user asks for "high quality", "professional", "detailed", or similar.
+Use `flash` by default. Switch to `pro` when the user asks for "high quality", "professional", "detailed", or similar. Use Imagen models when the user specifically asks for Imagen, or when they want the cheapest possible generation (`imagen-fast` at $0.02).
 
 ## Useful Flags
 

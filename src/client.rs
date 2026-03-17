@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::time::Instant;
 
+use crate::models::ApiType;
+
 const API_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
 pub struct GeminiClient {
@@ -25,49 +27,50 @@ pub struct ImageData {
     pub mime_type: String,
 }
 
-// Request types
+// --- Gemini (Nano Banana) request/response types ---
+
 #[derive(Serialize)]
-struct GenerateRequest {
-    contents: Vec<Content>,
+struct GeminiRequest {
+    contents: Vec<GeminiContent>,
     #[serde(rename = "generationConfig")]
-    generation_config: GenerationConfig,
+    generation_config: GeminiGenerationConfig,
 }
 
 #[derive(Serialize)]
-struct Content {
-    parts: Vec<Part>,
+struct GeminiContent {
+    parts: Vec<GeminiPart>,
 }
 
 #[derive(Serialize)]
 #[serde(untagged)]
-enum Part {
+enum GeminiPart {
     Text {
         text: String,
     },
     InlineData {
         #[serde(rename = "inlineData")]
-        inline_data: InlineData,
+        inline_data: GeminiInlineData,
     },
 }
 
 #[derive(Serialize)]
-struct InlineData {
+struct GeminiInlineData {
     #[serde(rename = "mimeType")]
     mime_type: String,
     data: String,
 }
 
 #[derive(Serialize)]
-struct GenerationConfig {
+struct GeminiGenerationConfig {
     #[serde(rename = "responseModalities")]
     response_modalities: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "imageConfig")]
-    image_config: Option<ImageConfig>,
+    image_config: Option<GeminiImageConfig>,
 }
 
 #[derive(Serialize)]
-struct ImageConfig {
+struct GeminiImageConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "aspectRatio")]
     aspect_ratio: Option<String>,
@@ -76,38 +79,85 @@ struct ImageConfig {
     output_image_size: Option<String>,
 }
 
-// Response types
 #[derive(Deserialize)]
-struct GenerateResponse {
-    candidates: Option<Vec<Candidate>>,
+struct GeminiResponse {
+    candidates: Option<Vec<GeminiCandidate>>,
     error: Option<ApiError>,
 }
 
 #[derive(Deserialize)]
-struct Candidate {
-    content: Option<CandidateContent>,
+struct GeminiCandidate {
+    content: Option<GeminiCandidateContent>,
     #[serde(rename = "finishReason")]
     finish_reason: Option<String>,
 }
 
 #[derive(Deserialize)]
-struct CandidateContent {
-    parts: Option<Vec<ResponsePart>>,
+struct GeminiCandidateContent {
+    parts: Option<Vec<GeminiResponsePart>>,
 }
 
 #[derive(Deserialize)]
-struct ResponsePart {
+struct GeminiResponsePart {
     text: Option<String>,
     #[serde(rename = "inlineData")]
-    inline_data: Option<ResponseInlineData>,
+    inline_data: Option<GeminiResponseInlineData>,
 }
 
 #[derive(Deserialize)]
-struct ResponseInlineData {
+struct GeminiResponseInlineData {
     #[serde(rename = "mimeType")]
     mime_type: String,
     data: String,
 }
+
+// --- Imagen 4 request/response types ---
+
+#[derive(Serialize)]
+struct ImagenRequest {
+    instances: Vec<ImagenInstance>,
+    parameters: ImagenParameters,
+}
+
+#[derive(Serialize)]
+struct ImagenInstance {
+    prompt: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ImagenParameters {
+    #[serde(rename = "sampleCount")]
+    sample_count: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "aspectRatio")]
+    aspect_ratio: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "outputOptions")]
+    output_options: Option<ImagenOutputOptions>,
+}
+
+#[derive(Serialize)]
+struct ImagenOutputOptions {
+    #[serde(rename = "mimeType")]
+    mime_type: String,
+}
+
+#[derive(Deserialize)]
+struct ImagenResponse {
+    predictions: Option<Vec<ImagenPrediction>>,
+    error: Option<ApiError>,
+}
+
+#[derive(Deserialize)]
+struct ImagenPrediction {
+    #[serde(rename = "bytesBase64Encoded")]
+    bytes_base64_encoded: String,
+    #[serde(rename = "mimeType")]
+    mime_type: Option<String>,
+}
+
+// --- Shared ---
 
 #[derive(Deserialize)]
 struct ApiError {
@@ -129,47 +179,65 @@ impl GeminiClient {
         &self,
         prompt: &str,
         model_api_id: &str,
+        api_type: ApiType,
         input_images: &[&Path],
         aspect: Option<&str>,
         size: &str,
     ) -> Result<GenerationResult> {
-        let mut parts: Vec<Part> = Vec::new();
+        match api_type {
+            ApiType::Gemini => self.generate_gemini(prompt, model_api_id, input_images, aspect, size).await,
+            ApiType::Imagen => {
+                if !input_images.is_empty() {
+                    bail!("Imagen 4 models only support text-to-image generation, not editing. Use flash or pro for image editing.");
+                }
+                self.generate_imagen(prompt, model_api_id, aspect).await
+            }
+        }
+    }
 
-        // Add input images (edit image + reference images)
+    async fn generate_gemini(
+        &self,
+        prompt: &str,
+        model_api_id: &str,
+        input_images: &[&Path],
+        aspect: Option<&str>,
+        size: &str,
+    ) -> Result<GenerationResult> {
+        let mut parts: Vec<GeminiPart> = Vec::new();
+
         for img_path in input_images {
             let data = std::fs::read(img_path)?;
             let mime = mime_for_path(img_path);
             let b64 = base64::engine::general_purpose::STANDARD.encode(&data);
-            parts.push(Part::InlineData {
-                inline_data: InlineData {
+            parts.push(GeminiPart::InlineData {
+                inline_data: GeminiInlineData {
                     mime_type: mime.to_string(),
                     data: b64,
                 },
             });
         }
 
-        // Add text prompt
-        parts.push(Part::Text {
+        parts.push(GeminiPart::Text {
             text: prompt.to_string(),
         });
 
         let image_config = if aspect.is_some() || size != "1K" {
-            Some(ImageConfig {
+            Some(GeminiImageConfig {
                 aspect_ratio: aspect.map(|a| a.to_string()),
                 output_image_size: match size {
                     "512" => Some("512".to_string()),
                     "2K" => Some("2048".to_string()),
                     "4K" => Some("4096".to_string()),
-                    _ => None, // 1K is default, don't send
+                    _ => None,
                 },
             })
         } else {
             None
         };
 
-        let request = GenerateRequest {
-            contents: vec![Content { parts }],
-            generation_config: GenerationConfig {
+        let request = GeminiRequest {
+            contents: vec![GeminiContent { parts }],
+            generation_config: GeminiGenerationConfig {
                 response_modalities: vec!["TEXT".to_string(), "IMAGE".to_string()],
                 image_config,
             },
@@ -185,8 +253,7 @@ impl GeminiClient {
         let body = response.text().await?;
 
         if !status.is_success() {
-            // Try to parse error
-            if let Ok(parsed) = serde_json::from_str::<GenerateResponse>(&body)
+            if let Ok(parsed) = serde_json::from_str::<GeminiResponse>(&body)
                 && let Some(err) = parsed.error
             {
                 match status.as_u16() {
@@ -198,7 +265,7 @@ impl GeminiClient {
             bail!("API returned {}: {}", status, &body[..body.len().min(200)]);
         }
 
-        let parsed: GenerateResponse = serde_json::from_str(&body)
+        let parsed: GeminiResponse = serde_json::from_str(&body)
             .map_err(|e| anyhow::anyhow!("Failed to parse API response: {}", e))?;
 
         if let Some(err) = parsed.error {
@@ -212,7 +279,6 @@ impl GeminiClient {
 
         let candidate = &candidates[0];
 
-        // Check for safety blocks
         if let Some(reason) = &candidate.finish_reason
             && reason == "SAFETY"
         {
@@ -257,6 +323,80 @@ impl GeminiClient {
             } else {
                 Some(text_parts.join("\n"))
             },
+            elapsed_seconds: elapsed,
+        })
+    }
+
+    async fn generate_imagen(
+        &self,
+        prompt: &str,
+        model_api_id: &str,
+        aspect: Option<&str>,
+    ) -> Result<GenerationResult> {
+        let request = ImagenRequest {
+            instances: vec![ImagenInstance {
+                prompt: prompt.to_string(),
+            }],
+            parameters: ImagenParameters {
+                sample_count: 1,
+                aspect_ratio: aspect.map(|a| a.to_string()),
+                output_options: Some(ImagenOutputOptions {
+                    mime_type: "image/png".to_string(),
+                }),
+            },
+        };
+
+        let url = format!("{API_BASE}/{model_api_id}:predict");
+
+        let start = Instant::now();
+        let response = self
+            .http
+            .post(&url)
+            .header("x-goog-api-key", &self.api_key)
+            .json(&request)
+            .send()
+            .await?;
+        let elapsed = start.elapsed().as_secs_f64();
+
+        let status = response.status();
+        let body = response.text().await?;
+
+        if !status.is_success() {
+            if let Ok(parsed) = serde_json::from_str::<ImagenResponse>(&body)
+                && let Some(err) = parsed.error
+            {
+                match status.as_u16() {
+                    401 | 403 => bail!("Authentication failed: {}. Check your GEMINI_API_KEY.", err.message),
+                    429 => bail!("Rate limited: {}. Try again in a few seconds.", err.message),
+                    _ => bail!("API error ({}): {}", status, err.message),
+                }
+            }
+            bail!("API returned {}: {}", status, &body[..body.len().min(200)]);
+        }
+
+        let parsed: ImagenResponse = serde_json::from_str(&body)
+            .map_err(|e| anyhow::anyhow!("Failed to parse Imagen response: {}", e))?;
+
+        if let Some(err) = parsed.error {
+            bail!("API error: {}", err.message);
+        }
+
+        let predictions = parsed.predictions.unwrap_or_default();
+        if predictions.is_empty() {
+            bail!("No images returned by Imagen. The request may have been filtered.");
+        }
+
+        let images: Vec<ImageData> = predictions
+            .into_iter()
+            .map(|p| ImageData {
+                base64: p.bytes_base64_encoded,
+                mime_type: p.mime_type.unwrap_or_else(|| "image/png".to_string()),
+            })
+            .collect();
+
+        Ok(GenerationResult {
+            images,
+            text: None,
             elapsed_seconds: elapsed,
         })
     }

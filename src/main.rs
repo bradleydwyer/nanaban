@@ -95,7 +95,7 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
     }
 
     let result = client
-        .generate(&prompt, model_info.api_id, &ref_paths, args.aspect.as_deref(), &args.size)
+        .generate(&prompt, model_info.api_id, model_info.api_type, &ref_paths, args.aspect.as_deref(), &args.size)
         .await?;
 
     let output_path = args.output.clone().unwrap_or_else(|| output::auto_filename(&prompt));
@@ -131,6 +131,9 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
     let model_info = models::lookup(&args.model)
         .ok_or_else(|| anyhow::anyhow!("Unknown model '{}'. Run `nanaban models` to see options.", args.model))?;
 
+    if model_info.api_type == models::ApiType::Imagen {
+        anyhow::bail!("Imagen models only support generation, not editing. Use flash or pro instead.");
+    }
     if !args.image.exists() {
         anyhow::bail!("Input image not found: {}", args.image.display());
     }
@@ -182,7 +185,7 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
 
     let size = args.size.as_deref().unwrap_or("1K");
     let result = client
-        .generate(&prompt, model_info.api_id, &all_images, args.aspect.as_deref(), size)
+        .generate(&prompt, model_info.api_id, model_info.api_type, &all_images, args.aspect.as_deref(), size)
         .await?;
 
     let output_path = args.output.clone().unwrap_or_else(|| output::auto_filename(&prompt));
