@@ -119,7 +119,7 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
         println!("{}", abs.display());
 
         if output_path.exists() {
-            output::show_image(&output_path, args.open);
+            output::show_image(&output_path, args.open, args.copy);
         }
     }
 
@@ -206,7 +206,7 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
         println!("{}", abs.display());
 
         if output_path.exists() {
-            output::show_image(&output_path, args.open);
+            output::show_image(&output_path, args.open, args.copy);
         }
     }
 

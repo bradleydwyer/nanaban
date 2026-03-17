@@ -104,7 +104,8 @@ pub fn display_inline(path: &Path) {
 
 /// Show the image: inline if supported, otherwise open in system viewer.
 /// If force_open is true, also open in system viewer regardless.
-pub fn show_image(path: &Path, force_open: bool) {
+/// If copy is true, copy to clipboard.
+pub fn show_image(path: &Path, force_open: bool, copy: bool) {
     if supports_inline_images() {
         display_inline(path);
         if force_open {
@@ -112,6 +113,29 @@ pub fn show_image(path: &Path, force_open: bool) {
         }
     } else {
         open_image(path);
+    }
+    if copy {
+        copy_to_clipboard(path);
+    }
+}
+
+pub fn copy_to_clipboard(path: &Path) {
+    let abs = std::fs::canonicalize(path).unwrap_or(path.to_path_buf());
+    let script = format!(
+        "set the clipboard to (read (POSIX file \"{}\") as «class PNGf»)",
+        abs.display()
+    );
+    let result = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output();
+    match result {
+        Ok(output) if output.status.success() => {
+            eprintln!("Copied to clipboard");
+        }
+        _ => {
+            eprintln!("Warning: failed to copy to clipboard");
+        }
     }
 }
 

@@ -62,6 +62,10 @@ pub struct GenerateArgs {
     /// Also open image in system viewer (Preview on macOS)
     #[arg(long)]
     pub open: bool,
+
+    /// Copy image to clipboard
+    #[arg(long)]
+    pub copy: bool,
 }
 
 #[derive(Parser)]
@@ -103,6 +107,10 @@ pub struct EditArgs {
     /// Also open image in system viewer (Preview on macOS)
     #[arg(long)]
     pub open: bool,
+
+    /// Copy image to clipboard
+    #[arg(long)]
+    pub copy: bool,
 }
 
 const VALID_ASPECTS: &[&str] = &[
