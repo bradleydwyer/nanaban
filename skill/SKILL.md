@@ -1,6 +1,12 @@
 ---
 name: nanaban
 description: Use this skill any time the user wants to CREATE or EDIT an image file. This is Claude's only way to generate images or modify photos — there is no other tool for this. Covers generating illustrations, logos, icons, avatars, social media graphics, pixel art, banners, or any visual artwork; editing or transforming existing photos (style transfer, background removal, color correction, restoration, retouching); creating visual assets at specific sizes or aspect ratios. Trigger on any request whose end result is a new or modified image file — "generate art", "edit this photo", "create an icon", "restore this picture", "remove the background", "make this look like a painting", etc. Do NOT trigger for image-related code tasks (file optimization, lazy loading, resizing via code libraries), converting mockups to code, architectural diagrams, or image analysis.
+allowed-tools:
+  - Bash(nanaban:*)
+  - Bash(source:*)
+  - Read
+user-invocable: true
+argument-hint: '"prompt to generate" or edit image.png "instructions"'
 ---
 
 # nanaban — Gemini Image Generation CLI
