@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="nanaban" width="256">
+</p>
+
 # nanaban
 
 CLI for AI image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Imagen 4 (Fast/Standard/Ultra). Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
