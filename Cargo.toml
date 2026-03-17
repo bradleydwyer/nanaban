@@ -1,0 +1,17 @@
+[package]
+name = "nanaban"
+version = "0.1.0"
+edition = "2024"
+description = "CLI for Gemini image generation (Nano Banana 2 / Pro)"
+
+[dependencies]
+anyhow = "1"
+atty = "0.2"
+base64 = "0.22"
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+image = "0.25"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
