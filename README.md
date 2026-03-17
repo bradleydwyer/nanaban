@@ -1,8 +1,6 @@
 # nanaban
 
-CLI for Gemini image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Gemini 2.5 Flash.
-
-Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
+CLI for Gemini image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Gemini 2.5 Flash. Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
 
 ## Install
 
