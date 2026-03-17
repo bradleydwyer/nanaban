@@ -155,7 +155,7 @@ impl GeminiClient {
 
         let image_config = if aspect.is_some() || size != "1K" {
             Some(ImageConfig {
-                aspect_ratio: aspect.map(|a| a.replace(':', ":")),
+                aspect_ratio: aspect.map(|a| a.to_string()),
                 output_image_size: match size {
                     "512" => Some("512".to_string()),
                     "2K" => Some("2048".to_string()),
@@ -186,13 +186,13 @@ impl GeminiClient {
 
         if !status.is_success() {
             // Try to parse error
-            if let Ok(parsed) = serde_json::from_str::<GenerateResponse>(&body) {
-                if let Some(err) = parsed.error {
-                    match status.as_u16() {
-                        401 | 403 => bail!("Authentication failed: {}. Check your GEMINI_API_KEY.", err.message),
-                        429 => bail!("Rate limited: {}. Try again in a few seconds.", err.message),
-                        _ => bail!("API error ({}): {}", status, err.message),
-                    }
+            if let Ok(parsed) = serde_json::from_str::<GenerateResponse>(&body)
+                && let Some(err) = parsed.error
+            {
+                match status.as_u16() {
+                    401 | 403 => bail!("Authentication failed: {}. Check your GEMINI_API_KEY.", err.message),
+                    429 => bail!("Rate limited: {}. Try again in a few seconds.", err.message),
+                    _ => bail!("API error ({}): {}", status, err.message),
                 }
             }
             bail!("API returned {}: {}", status, &body[..body.len().min(200)]);
@@ -213,10 +213,10 @@ impl GeminiClient {
         let candidate = &candidates[0];
 
         // Check for safety blocks
-        if let Some(reason) = &candidate.finish_reason {
-            if reason == "SAFETY" {
-                bail!("Request blocked by safety filter. Try rephrasing your prompt.");
-            }
+        if let Some(reason) = &candidate.finish_reason
+            && reason == "SAFETY"
+        {
+            bail!("Request blocked by safety filter. Try rephrasing your prompt.");
         }
 
         let parts = candidate

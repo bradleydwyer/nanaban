@@ -56,10 +56,10 @@ pub fn save_image(base64_data: &str, path: &Path) -> Result<(u32, u32)> {
     let img = image::load_from_memory(&bytes)?;
     let (w, h) = (img.width(), img.height());
 
-    if let Some(parent) = path.parent() {
-        if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)?;
-        }
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        std::fs::create_dir_all(parent)?;
     }
 
     std::fs::write(path, &bytes)?;

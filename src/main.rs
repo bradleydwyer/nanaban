@@ -215,13 +215,13 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
 
 fn save_result_images(
     result: &client::GenerationResult,
-    output_path: &std::path::PathBuf,
+    output_path: &Path,
     verbose: u8,
 ) -> Result<Vec<output::ImageOutput>> {
     let mut image_outputs = Vec::new();
     for (i, img) in result.images.iter().enumerate() {
         let path = if i == 0 {
-            output_path.clone()
+            output_path.to_path_buf()
         } else {
             let stem = output_path.file_stem().unwrap_or_default().to_str().unwrap_or("image");
             let ext = output_path.extension().unwrap_or_default().to_str().unwrap_or("png");

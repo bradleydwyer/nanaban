@@ -33,7 +33,7 @@ pub fn lookup(short_name: &str) -> Option<&'static ModelInfo> {
 }
 
 pub fn print_table() {
-    println!("{:<12} {:<38} {:>10}  {}", "Name", "API Identifier", "Cost", "Description");
+    println!("{:<12} {:<38} {:>10}  Description", "Name", "API Identifier", "Cost");
     println!("{}", "-".repeat(90));
     for m in MODELS {
         let default_marker = if m.short_name == DEFAULT_MODEL { " (default)" } else { "" };
