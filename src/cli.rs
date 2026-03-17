@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "nanaban", about = "Gemini image generation CLI (Nano Banana 2 / Pro)")]
+#[command(name = "nanaban", version, about = "Gemini image generation CLI (Nano Banana 2 / Pro)")]
 pub struct Cli {
     /// Increase verbosity (-v, -vv, -vvv)
     #[arg(short, long, action = clap::ArgAction::Count, global = true)]
