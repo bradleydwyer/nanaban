@@ -59,9 +59,9 @@ pub struct GenerateArgs {
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Don't auto-open the image after generation
+    /// Also open image in system viewer (Preview on macOS)
     #[arg(long)]
-    pub no_open: bool,
+    pub open: bool,
 }
 
 #[derive(Parser)]
@@ -100,9 +100,9 @@ pub struct EditArgs {
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Don't auto-open the image after generation
+    /// Also open image in system viewer (Preview on macOS)
     #[arg(long)]
-    pub no_open: bool,
+    pub open: bool,
 }
 
 const VALID_ASPECTS: &[&str] = &[

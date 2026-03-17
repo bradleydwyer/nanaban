@@ -118,8 +118,8 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
         let abs = std::fs::canonicalize(&output_path).unwrap_or(output_path.clone());
         println!("{}", abs.display());
 
-        if !args.no_open && output_path.exists() {
-            output::open_image(&output_path);
+        if output_path.exists() {
+            output::show_image(&output_path, args.open);
         }
     }
 
@@ -205,8 +205,8 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
         let abs = std::fs::canonicalize(&output_path).unwrap_or(output_path.clone());
         println!("{}", abs.display());
 
-        if !args.no_open && output_path.exists() {
-            output::open_image(&output_path);
+        if output_path.exists() {
+            output::show_image(&output_path, args.open);
         }
     }
 

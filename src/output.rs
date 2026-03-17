@@ -78,6 +78,43 @@ pub fn emit_error_json(output: &ErrorOutput) {
     }
 }
 
+/// Returns true if the terminal supports the Kitty graphics protocol (inline images).
+pub fn supports_inline_images() -> bool {
+    if let Ok(term) = std::env::var("TERM_PROGRAM") {
+        return matches!(term.as_str(), "ghostty" | "kitty" | "WezTerm");
+    }
+    if std::env::var("GHOSTTY_RESOURCES_DIR").is_ok() {
+        return true;
+    }
+    if let Ok(term) = std::env::var("TERM") {
+        return term.contains("kitty") || term == "xterm-ghostty";
+    }
+    false
+}
+
+/// Display image inline in the terminal using Kitty graphics protocol.
+pub fn display_inline(path: &Path) {
+    let conf = viuer::Config {
+        width: Some(80),
+        absolute_offset: false,
+        ..Default::default()
+    };
+    let _ = viuer::print_from_file(path, &conf);
+}
+
+/// Show the image: inline if supported, otherwise open in system viewer.
+/// If force_open is true, also open in system viewer regardless.
+pub fn show_image(path: &Path, force_open: bool) {
+    if supports_inline_images() {
+        display_inline(path);
+        if force_open {
+            open_image(path);
+        }
+    } else {
+        open_image(path);
+    }
+}
+
 pub fn open_image(path: &Path) {
     let _ = std::process::Command::new("open")
         .arg(path)
