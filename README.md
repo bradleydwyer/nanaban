@@ -4,7 +4,7 @@
 
 # nanaban
 
-CLI for AI image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Imagen 4 (Fast/Standard/Ultra). Displays images inline in Kitty-capable terminals (Ghostty, Kitty, WezTerm).
+CLI for AI image generation. Supports Nano Banana 2 (Flash), Nano Banana Pro, and Imagen 4 (Fast/Standard/Ultra). Displays images inline in Kitty-capable terminals (Ghostty, Kitty).
 
 ## Install
 
@@ -123,11 +123,11 @@ This lets Claude Code generate and edit images directly when you ask it to creat
 
 ## Terminal image display
 
-In Ghostty, Kitty, or WezTerm, generated images display inline in the terminal. Other terminals fall back to opening in the system viewer.
+In Ghostty or Kitty, generated images display inline in the terminal. Other terminals fall back to opening in the system viewer.
 
 | Terminal | Default | `--open` | `--copy` |
 |----------|---------|----------|----------|
-| Ghostty / Kitty / WezTerm | Inline display | Inline + Preview | Copies to clipboard |
+| Ghostty / Kitty | Inline display | Inline + Preview | Copies to clipboard |
 | macOS Terminal / other | Opens Preview | Opens Preview | Copies to clipboard |
 | `--json` mode | No display | No display | No copy |
 
