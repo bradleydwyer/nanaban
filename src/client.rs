@@ -75,7 +75,7 @@ struct GeminiImageConfig {
     #[serde(rename = "aspectRatio")]
     aspect_ratio: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "outputImageSize")]
+    #[serde(rename = "imageSize")]
     output_image_size: Option<String>,
 }
 
@@ -226,8 +226,8 @@ impl GeminiClient {
                 aspect_ratio: aspect.map(|a| a.to_string()),
                 output_image_size: match size {
                     "512" => Some("512".to_string()),
-                    "2K" => Some("2048".to_string()),
-                    "4K" => Some("4096".to_string()),
+                    "2K" => Some("2K".to_string()),
+                    "4K" => Some("4K".to_string()),
                     _ => None,
                 },
             })
