@@ -61,7 +61,6 @@ pub fn auto_filename(prompt: &str, mime: &str) -> PathBuf {
 pub fn save_image(base64_data: &str, path: &Path) -> Result<(u32, u32)> {
     let bytes = base64::engine::general_purpose::STANDARD.decode(base64_data)?;
 
-    // Validate it's actually an image and get dimensions
     let img = image::load_from_memory(&bytes)?;
     let (w, h) = (img.width(), img.height());
 
@@ -71,7 +70,33 @@ pub fn save_image(base64_data: &str, path: &Path) -> Result<(u32, u32)> {
         std::fs::create_dir_all(parent)?;
     }
 
-    std::fs::write(path, &bytes)?;
+    let target_format = match path.extension().and_then(|e| e.to_str()) {
+        Some("jpg" | "jpeg") => Some(image::ImageFormat::Jpeg),
+        Some("png") => Some(image::ImageFormat::Png),
+        Some("webp") => Some(image::ImageFormat::WebP),
+        _ => None,
+    };
+
+    let source_is_jpeg = bytes.starts_with(&[0xFF, 0xD8, 0xFF]);
+    let source_is_png = bytes.starts_with(&[0x89, 0x50, 0x4E, 0x47]);
+
+    let needs_conversion = match target_format {
+        Some(image::ImageFormat::Jpeg) => !source_is_jpeg,
+        Some(image::ImageFormat::Png) => !source_is_png,
+        Some(_) => true,
+        None => false,
+    };
+
+    if needs_conversion {
+        if let Some(fmt) = target_format {
+            img.save_with_format(path, fmt)?;
+        } else {
+            std::fs::write(path, &bytes)?;
+        }
+    } else {
+        std::fs::write(path, &bytes)?;
+    }
+
     Ok((w, h))
 }
 
