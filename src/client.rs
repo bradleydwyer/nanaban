@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -185,10 +185,15 @@ impl GeminiClient {
         size: &str,
     ) -> Result<GenerationResult> {
         match api_type {
-            ApiType::Gemini => self.generate_gemini(prompt, model_api_id, input_images, aspect, size).await,
+            ApiType::Gemini => {
+                self.generate_gemini(prompt, model_api_id, input_images, aspect, size)
+                    .await
+            }
             ApiType::Imagen => {
                 if !input_images.is_empty() {
-                    bail!("Imagen 4 models only support text-to-image generation, not editing. Use flash or pro for image editing.");
+                    bail!(
+                        "Imagen 4 models only support text-to-image generation, not editing. Use flash or pro for image editing."
+                    );
                 }
                 self.generate_imagen(prompt, model_api_id, aspect).await
             }
@@ -243,7 +248,10 @@ impl GeminiClient {
             },
         };
 
-        let url = format!("{API_BASE}/{model_api_id}:generateContent?key={}", self.api_key);
+        let url = format!(
+            "{API_BASE}/{model_api_id}:generateContent?key={}",
+            self.api_key
+        );
 
         let start = Instant::now();
         let response = self.http.post(&url).json(&request).send().await?;
@@ -257,7 +265,10 @@ impl GeminiClient {
                 && let Some(err) = parsed.error
             {
                 match status.as_u16() {
-                    401 | 403 => bail!("Authentication failed: {}. Check your GEMINI_API_KEY.", err.message),
+                    401 | 403 => bail!(
+                        "Authentication failed: {}. Check your GEMINI_API_KEY.",
+                        err.message
+                    ),
                     429 => bail!("Rate limited: {}. Try again in a few seconds.", err.message),
                     _ => bail!("API error ({}): {}", status, err.message),
                 }
@@ -366,7 +377,10 @@ impl GeminiClient {
                 && let Some(err) = parsed.error
             {
                 match status.as_u16() {
-                    401 | 403 => bail!("Authentication failed: {}. Check your GEMINI_API_KEY.", err.message),
+                    401 | 403 => bail!(
+                        "Authentication failed: {}. Check your GEMINI_API_KEY.",
+                        err.message
+                    ),
                     429 => bail!("Rate limited: {}. Try again in a few seconds.", err.message),
                     _ => bail!("API error ({}): {}", status, err.message),
                 }

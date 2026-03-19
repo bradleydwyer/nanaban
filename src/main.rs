@@ -38,7 +38,10 @@ async fn main() {
         let msg = e.to_string();
         if msg.contains("safety filter") {
             process::exit(3);
-        } else if msg.contains("API") || msg.contains("Rate limited") || msg.contains("Authentication") {
+        } else if msg.contains("API")
+            || msg.contains("Rate limited")
+            || msg.contains("Authentication")
+        {
             process::exit(2);
         } else {
             process::exit(1);
@@ -48,8 +51,12 @@ async fn main() {
 
 async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> Result<()> {
     let prompt = cli::resolve_prompt(&args.prompt, &args.prompt_flag)?;
-    let model_info = models::lookup(&args.model)
-        .ok_or_else(|| anyhow::anyhow!("Unknown model '{}'. Run `nanaban models` to see options.", args.model))?;
+    let model_info = models::lookup(&args.model).ok_or_else(|| {
+        anyhow::anyhow!(
+            "Unknown model '{}'. Run `nanaban models` to see options.",
+            args.model
+        )
+    })?;
 
     if let Some(ref aspect) = args.aspect {
         cli::validate_aspect(aspect)?;
@@ -62,17 +69,23 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
         }
     }
     if args.refs.len() > 14 {
-        anyhow::bail!("Maximum 14 reference images allowed, got {}.", args.refs.len());
+        anyhow::bail!(
+            "Maximum 14 reference images allowed, got {}.",
+            args.refs.len()
+        );
     }
 
     if args.dry_run {
         if json_mode {
-            println!("{}", serde_json::json!({
-                "status": "dry_run",
-                "model": model_info.api_id,
-                "model_short": model_info.short_name,
-                "estimated_cost_usd": model_info.cost_per_image,
-            }));
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "dry_run",
+                    "model": model_info.api_id,
+                    "model_short": model_info.short_name,
+                    "estimated_cost_usd": model_info.cost_per_image,
+                })
+            );
         } else {
             eprintln!("Model: {} ({})", model_info.short_name, model_info.api_id);
             eprintln!("Estimated cost: ~${:.2}", model_info.cost_per_image);
@@ -95,14 +108,27 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
     }
 
     let result = client
-        .generate(&prompt, model_info.api_id, model_info.api_type, &ref_paths, args.aspect.as_deref(), &args.size)
+        .generate(
+            &prompt,
+            model_info.api_id,
+            model_info.api_type,
+            &ref_paths,
+            args.aspect.as_deref(),
+            &args.size,
+        )
         .await?;
 
-    let output_path = args.output.clone().unwrap_or_else(|| output::auto_filename(&prompt));
+    let output_path = args
+        .output
+        .clone()
+        .unwrap_or_else(|| output::auto_filename(&prompt));
 
     let image_outputs = save_result_images(&result, &output_path, verbose)?;
 
-    eprintln!("Estimated cost: ~${:.2} ({})", model_info.cost_per_image, model_info.short_name);
+    eprintln!(
+        "Estimated cost: ~${:.2} ({})",
+        model_info.cost_per_image, model_info.short_name
+    );
 
     if json_mode {
         output::emit_success_json(&output::SuccessOutput {
@@ -128,11 +154,17 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
 
 async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<()> {
     let prompt = cli::resolve_prompt(&args.prompt, &args.prompt_flag)?;
-    let model_info = models::lookup(&args.model)
-        .ok_or_else(|| anyhow::anyhow!("Unknown model '{}'. Run `nanaban models` to see options.", args.model))?;
+    let model_info = models::lookup(&args.model).ok_or_else(|| {
+        anyhow::anyhow!(
+            "Unknown model '{}'. Run `nanaban models` to see options.",
+            args.model
+        )
+    })?;
 
     if model_info.api_type == models::ApiType::Imagen {
-        anyhow::bail!("Imagen models only support generation, not editing. Use flash or pro instead.");
+        anyhow::bail!(
+            "Imagen models only support generation, not editing. Use flash or pro instead."
+        );
     }
     if !args.image.exists() {
         anyhow::bail!("Input image not found: {}", args.image.display());
@@ -149,17 +181,23 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
         }
     }
     if args.refs.len() + 1 > 14 {
-        anyhow::bail!("Maximum 14 total images (input + refs), got {}.", args.refs.len() + 1);
+        anyhow::bail!(
+            "Maximum 14 total images (input + refs), got {}.",
+            args.refs.len() + 1
+        );
     }
 
     if args.dry_run {
         if json_mode {
-            println!("{}", serde_json::json!({
-                "status": "dry_run",
-                "model": model_info.api_id,
-                "model_short": model_info.short_name,
-                "estimated_cost_usd": model_info.cost_per_image,
-            }));
+            println!(
+                "{}",
+                serde_json::json!({
+                    "status": "dry_run",
+                    "model": model_info.api_id,
+                    "model_short": model_info.short_name,
+                    "estimated_cost_usd": model_info.cost_per_image,
+                })
+            );
         } else {
             eprintln!("Model: {} ({})", model_info.short_name, model_info.api_id);
             eprintln!("Estimated cost: ~${:.2}", model_info.cost_per_image);
@@ -185,14 +223,27 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
 
     let size = args.size.as_deref().unwrap_or("1K");
     let result = client
-        .generate(&prompt, model_info.api_id, model_info.api_type, &all_images, args.aspect.as_deref(), size)
+        .generate(
+            &prompt,
+            model_info.api_id,
+            model_info.api_type,
+            &all_images,
+            args.aspect.as_deref(),
+            size,
+        )
         .await?;
 
-    let output_path = args.output.clone().unwrap_or_else(|| output::auto_filename(&prompt));
+    let output_path = args
+        .output
+        .clone()
+        .unwrap_or_else(|| output::auto_filename(&prompt));
 
     let image_outputs = save_result_images(&result, &output_path, verbose)?;
 
-    eprintln!("Estimated cost: ~${:.2} ({})", model_info.cost_per_image, model_info.short_name);
+    eprintln!(
+        "Estimated cost: ~${:.2} ({})",
+        model_info.cost_per_image, model_info.short_name
+    );
 
     if json_mode {
         output::emit_success_json(&output::SuccessOutput {
@@ -226,8 +277,16 @@ fn save_result_images(
         let path = if i == 0 {
             output_path.to_path_buf()
         } else {
-            let stem = output_path.file_stem().unwrap_or_default().to_str().unwrap_or("image");
-            let ext = output_path.extension().unwrap_or_default().to_str().unwrap_or("png");
+            let stem = output_path
+                .file_stem()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or("image");
+            let ext = output_path
+                .extension()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or("png");
             output_path.with_file_name(format!("{stem}_{i}.{ext}"))
         };
         let (w, h) = output::save_image(&img.base64, &path)?;

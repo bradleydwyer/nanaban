@@ -2,7 +2,11 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "nanaban", version, about = "Gemini image generation CLI (Nano Banana 2 / Pro)")]
+#[command(
+    name = "nanaban",
+    version,
+    about = "Gemini image generation CLI (Nano Banana 2 / Pro)"
+)]
 pub struct Cli {
     /// Increase verbosity (-v, -vv, -vvv)
     #[arg(short, long, action = clap::ArgAction::Count, global = true)]
@@ -142,11 +146,16 @@ pub fn validate_size(size: &str) -> anyhow::Result<()> {
 }
 
 /// Resolve prompt from flag, positional arg, or stdin.
-pub fn resolve_prompt(positional: &Option<String>, flag: &Option<String>) -> anyhow::Result<String> {
+pub fn resolve_prompt(
+    positional: &Option<String>,
+    flag: &Option<String>,
+) -> anyhow::Result<String> {
     // Flag takes priority
     if let Some(p) = flag {
         if positional.is_some() {
-            anyhow::bail!("Cannot provide both a positional prompt and --prompt-flag. Use one or the other.");
+            anyhow::bail!(
+                "Cannot provide both a positional prompt and --prompt-flag. Use one or the other."
+            );
         }
         // @file syntax
         if let Some(path) = p.strip_prefix('@') {

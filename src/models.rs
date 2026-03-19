@@ -57,15 +57,24 @@ pub fn lookup(short_name: &str) -> Option<&'static ModelInfo> {
 }
 
 pub fn print_table() {
-    println!("{:<14} {:<38} {:>8}  Description", "Name", "API Identifier", "Cost");
+    println!(
+        "{:<14} {:<38} {:>8}  Description",
+        "Name", "API Identifier", "Cost"
+    );
     println!("{}", "-".repeat(95));
     for m in MODELS {
-        let default_marker = if m.short_name == DEFAULT_MODEL { " (default)" } else { "" };
+        let default_marker = if m.short_name == DEFAULT_MODEL {
+            " (default)"
+        } else {
+            ""
+        };
         println!(
             "{:<14} {:<38} {:>8}  {}{}",
-            m.short_name, m.api_id,
+            m.short_name,
+            m.api_id,
             format!("~${:.2}", m.cost_per_image),
-            m.description, default_marker,
+            m.description,
+            default_marker,
         );
     }
 }
