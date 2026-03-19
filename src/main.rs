@@ -118,7 +118,11 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
         )
         .await?;
 
-    let first_mime = result.images.first().map(|i| i.mime_type.as_str()).unwrap_or("image/png");
+    let first_mime = result
+        .images
+        .first()
+        .map(|i| i.mime_type.as_str())
+        .unwrap_or("image/png");
     let output_path = args
         .output
         .clone()
@@ -234,7 +238,11 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
         )
         .await?;
 
-    let first_mime = result.images.first().map(|i| i.mime_type.as_str()).unwrap_or("image/png");
+    let first_mime = result
+        .images
+        .first()
+        .map(|i| i.mime_type.as_str())
+        .unwrap_or("image/png");
     let output_path = args
         .output
         .clone()
