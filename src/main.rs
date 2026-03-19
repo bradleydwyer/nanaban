@@ -118,10 +118,11 @@ async fn run_generate(args: cli::GenerateArgs, json_mode: bool, verbose: u8) -> 
         )
         .await?;
 
+    let first_mime = result.images.first().map(|i| i.mime_type.as_str()).unwrap_or("image/png");
     let output_path = args
         .output
         .clone()
-        .unwrap_or_else(|| output::auto_filename(&prompt));
+        .unwrap_or_else(|| output::auto_filename(&prompt, first_mime));
 
     let image_outputs = save_result_images(&result, &output_path, verbose)?;
 
@@ -233,10 +234,11 @@ async fn run_edit(args: cli::EditArgs, json_mode: bool, verbose: u8) -> Result<(
         )
         .await?;
 
+    let first_mime = result.images.first().map(|i| i.mime_type.as_str()).unwrap_or("image/png");
     let output_path = args
         .output
         .clone()
-        .unwrap_or_else(|| output::auto_filename(&prompt));
+        .unwrap_or_else(|| output::auto_filename(&prompt, first_mime));
 
     let image_outputs = save_result_images(&result, &output_path, verbose)?;
 
@@ -282,11 +284,7 @@ fn save_result_images(
                 .unwrap_or_default()
                 .to_str()
                 .unwrap_or("image");
-            let ext = output_path
-                .extension()
-                .unwrap_or_default()
-                .to_str()
-                .unwrap_or("png");
+            let ext = output::ext_for_mime(&img.mime_type);
             output_path.with_file_name(format!("{stem}_{i}.{ext}"))
         };
         let (w, h) = output::save_image(&img.base64, &path)?;

@@ -37,7 +37,15 @@ pub struct ErrorOutput {
     pub elapsed_seconds: Option<f64>,
 }
 
-pub fn auto_filename(prompt: &str) -> PathBuf {
+pub fn ext_for_mime(mime: &str) -> &'static str {
+    if mime.contains("jpeg") || mime.contains("jpg") {
+        "jpg"
+    } else {
+        "png"
+    }
+}
+
+pub fn auto_filename(prompt: &str, mime: &str) -> PathBuf {
     let now = Local::now();
     let timestamp = now.format("%Y%m%d_%H%M%S");
 
@@ -46,7 +54,8 @@ pub fn auto_filename(prompt: &str) -> PathBuf {
     let hash = format!("{:08x}", hasher.finish());
     let hash8 = &hash[..8];
 
-    PathBuf::from(format!("nanaban_{timestamp}_{hash8}.png"))
+    let ext = ext_for_mime(mime);
+    PathBuf::from(format!("nanaban_{timestamp}_{hash8}.{ext}"))
 }
 
 pub fn save_image(base64_data: &str, path: &Path) -> Result<(u32, u32)> {
@@ -121,8 +130,12 @@ pub fn show_image(path: &Path, force_open: bool, copy: bool) {
 
 pub fn copy_to_clipboard(path: &Path) {
     let abs = std::fs::canonicalize(path).unwrap_or(path.to_path_buf());
+    let class = match path.extension().and_then(|e| e.to_str()) {
+        Some("jpg" | "jpeg") => "JPEG",
+        _ => "PNGf",
+    };
     let script = format!(
-        "set the clipboard to (read (POSIX file \"{}\") as «class PNGf»)",
+        "set the clipboard to (read (POSIX file \"{}\") as «class {class}»)",
         abs.display()
     );
     let result = std::process::Command::new("osascript")
